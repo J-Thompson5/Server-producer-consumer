@@ -7,14 +7,15 @@ BIN_DIR = bin
 CFLAGS ?= -Wall -Wextra -pthread -I$(INC_DIR) -O2 -g -MMD -MP
 LDFLAGS ?= -pthread
 
-COMMON_OBJS = $(OBJ_DIR)/net_util.o $(OBJ_DIR)/conn_queue.o
+COMMON_OBJS = $(OBJ_DIR)/net_util.o
 
 TARGETS = $(BIN_DIR)/server_unsafe \
+          $(BIN_DIR)/server_safe \
           $(BIN_DIR)/server_save \
           $(BIN_DIR)/server_pool \
           $(BIN_DIR)/load_client
 
-.PHONY: all clean server_unsafe server_save server_pool load_client
+.PHONY: all clean server_unsafe server_safe server_save server_pool load_client
 
 all: $(TARGETS)
 
@@ -27,20 +28,24 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # Enlazado de ejecutables
-$(BIN_DIR)/server_unsafe: $(OBJ_DIR)/server_unsafe.o $(OBJ_DIR)/net_util.o | $(BIN_DIR)
+$(BIN_DIR)/server_unsafe: $(OBJ_DIR)/server_unsafe.o $(COMMON_OBJS) | $(BIN_DIR)
+	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
+
+$(BIN_DIR)/server_safe: $(OBJ_DIR)/server_safe.o $(COMMON_OBJS) | $(BIN_DIR)
 	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
 
 $(BIN_DIR)/server_save: $(OBJ_DIR)/server_save.o $(COMMON_OBJS) | $(BIN_DIR)
 	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
 
-$(BIN_DIR)/server_pool: $(OBJ_DIR)/server_pool.o $(COMMON_OBJS) | $(BIN_DIR)
+$(BIN_DIR)/server_pool: $(OBJ_DIR)/server_pool.o $(COMMON_OBJS) $(OBJ_DIR)/conn_queue.o | $(BIN_DIR)
 	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
 
-$(BIN_DIR)/load_client: $(OBJ_DIR)/load_client.o $(OBJ_DIR)/net_util.o | $(BIN_DIR)
+$(BIN_DIR)/load_client: $(OBJ_DIR)/load_client.o | $(BIN_DIR)
 	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
 
 # Alias para compilar individualmente
 server_unsafe: $(BIN_DIR)/server_unsafe
+server_safe: $(BIN_DIR)/server_safe
 server_save: $(BIN_DIR)/server_save
 server_pool: $(BIN_DIR)/server_pool
 load_client: $(BIN_DIR)/load_client
@@ -48,5 +53,4 @@ load_client: $(BIN_DIR)/load_client
 clean:
 	rm -rf $(OBJ_DIR) $(BIN_DIR) *.dSYM
 
-# Incluir dependencias generadas de cabeceras
--include $(OBJ_DIR)/*.d
+-include $(wildcard $(OBJ_DIR)/*.d)

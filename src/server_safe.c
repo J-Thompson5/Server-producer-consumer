@@ -1,11 +1,11 @@
 //
-// Thread pool server implementation
+// Created by Sleyter Angulo on 9/17/26.
 //
 
 int main(int argc, char *argv[])
 {
     (void)argc;
     (void)argv;
-    // Your thread pool server implementation here
+    // Your code here
     return 0;
 }
